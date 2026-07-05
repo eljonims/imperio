@@ -1,0 +1,22 @@
+[
+  {
+    "x": 0,
+    "y": 0,
+    "suelo": "pradera",
+    "accidente": "ninguno",
+    "mejora": "granja",
+    "estadoRuina": "ninguna",
+    "tieneCarretera": true,
+    "tieneViaTren": false
+  },
+  {
+    "x": 0,
+    "y": 1,
+    "suelo": "desierto",
+    "accidente": "colina",
+    "mejora": "mina",
+    "estadoRuina": "disponible",
+    "tieneCarretera": false,
+    "tieneViaTren": false
+  }
+]

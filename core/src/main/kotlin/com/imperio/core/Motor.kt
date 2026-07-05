@@ -37,6 +37,25 @@ class Motor : ServiciosMotor {
             println("[CORE] ERROR CRÍTICO al deserializar el mapa JSON: ${e.message}")
         }
     }
+    /**
+     * Abre el disco duro, lee el archivo JSON de la carpeta assets y activa el cargador.
+     * Usa el ClassLoader de la JVM para que funcione en cualquier sistema operativo.
+     */
+    fun cargarMapaDesdeArchivo(nombreArchivo: String) {
+        try {
+            // Buscamos el archivo en la raíz del empaquetado de recursos de Gradle
+            val stream = this::class.java.classLoader.getResourceAsStream(nombreArchivo)
+                ?: throw IllegalArgumentException("No se encontró el archivo '$nombreArchivo' en los recursos del sistema.")
+
+            val textoJson = stream.bufferedReader().use { it.readText() }
+
+            println("[CORE] Archivo '$nombreArchivo' leído con éxito del disco duro.")
+            inicializarMapaDesdeJson(textoJson)
+        } catch (e: Exception) {
+            println("[CORE] ERROR CRÍTICO al leer el archivo físico del mapa: ${e.message}")
+        }
+    }
+
 
     override fun apagarMotor() {
         println("[CORE] Solicitando cierre. Despachando mensaje final...")

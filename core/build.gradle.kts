@@ -23,3 +23,11 @@ kotlin {
 tasks.test {
     useJUnitPlatform()
 }
+sourceSets {
+    main {
+        resources {
+            // Le añadimos la carpeta assets al catálogo oficial de recursos de la JVM
+            srcDir("assets")
+        }
+    }
+}
