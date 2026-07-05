@@ -38,6 +38,13 @@ class Motor : ServiciosMotor {
             is AccionJugador.MoverA -> {
                 // Por ahora lo dejamos vacío para el siguiente paso
             }
+            is AccionJugador.SalirAlMenuPrincipal -> {
+                alcanceMotor.launch {
+                    println("[CORE] El jugador ha solicitado salir. Despachando mensaje de cierre...")
+                    // Enviamos un último mensaje de cortesía por la tubería
+                    _canalSalida.emit(AccionCore.MostrarMensaje("Partida finalizada. Cerrando conexiones."))
+                }
+            }
         }
     }
 }
