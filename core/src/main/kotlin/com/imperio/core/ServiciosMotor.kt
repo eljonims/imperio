@@ -26,4 +26,5 @@ interface ServiciosMotor {
      * La UI lanza aquí las intenciones del jugador y continúa su ejecución.
      */
     fun enviarAccion(accion: AccionJugador)
+    fun apagarMotor()
 }
