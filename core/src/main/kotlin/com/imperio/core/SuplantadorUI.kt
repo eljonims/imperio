@@ -1,45 +1,46 @@
 package com.imperio.core
 
-import com.imperio.core.comunicacion.AccionJugador
 import com.imperio.core.comunicacion.AccionCore
-import kotlinx.coroutines.flow.collect
+import com.imperio.core.comunicacion.AccionJugador
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 /**
- * Función principal ejecutable (Arnés de pruebas definitivo).
- * Suplanta a la UI para exprimir la lógica del Motor por consola.
+ * Función principal ejecutable. Suplanta a la UI.
+ * Diseñada de forma autónoma: el lector se autocierra al recibir la orden del Core.
  */
 fun main() = runBlocking {
     val motorJuego: ServiciosMotor = Motor()
 
     println("[SUPLANTADOR] Abriendo el Pipe de escucha del Core...")
 
-    // 1. El Hilo de la UI abre la tubería infinita de lectura (collect)
+
     launch {
         motorJuego.flujoAccionesCore.collect { accionCore ->
-            // Usamos un 'when' básico para desglosar lo que nos tira el Core
             when (accionCore) {
                 is AccionCore.NuevoEstado -> {
                     val foto = accionCore.estado
-                    println("\n--- [SUPLANTADOR] ¡NUEVA FOTO DEL JUEGO DETECTADA! ---")
+                    println("\n--- [SUPLANTADOR] NUEVO ESTADO DETECTADO ---")
                     println("-> Turno Actual: ${foto.turnoActual}")
-                    println("-> Mensaje en Pantalla: ${foto.mensajePantalla}")
-                    println("-> Casilla Seleccionada: ${foto.coordenadaSeleccionada}")
-                    println("-> Ruta en Pantalla (Flechas): ${foto.rutaSimulada?.casillasCamino}")
-                    println("----------------------------------------------------\n")
+                    println("--------------------------------------------\n")
                 }
                 is AccionCore.MostrarMensaje -> {
-                    println("[SUPLANTADOR] Mensaje flotante: ${accionCore.texto}")
+                    println("[SUPLANTADOR] Mensaje recibido: ${accionCore.texto}")
+
+                    // AUTOCIERRE: Si el mensaje contiene la orden de cierre, nos destruimos
+                    if (accionCore.texto.contains("Cerrando")) {
+                        println("[SUPLANTADOR] Detectada orden de fin. Autocancelando coproceso...")
+                        this.coroutineContext[Job]?.cancel()
+                    }
                 }
             }
         }
     }
 
-    // 2. Simulamos la vida asíncrona: El jugador interactúa cuando le da la gana
-    println("[SUPLANTADOR] El jugador toca el botón de Pasar Turno...")
-    motorJuego.enviarAccion(AccionJugador.TerminarTurno)
-
-    println("[SUPLANTADOR] El jugador toca la casilla lejana (4, 5)...")
+    println("[SUPLANTADOR] El jugador toca la casilla (4, 5)...")
     motorJuego.enviarAccion(AccionJugador.SeleccionarCasilla(4, 5))
+
+    println("[SUPLANTADOR] El jugador decide salir al menú principal...")
+    motorJuego.enviarAccion(AccionJugador.SalirAlMenuPrincipal)
 }
