@@ -1,3 +1,9 @@
+/**
+ * ARQUITECTURA IMPERIO: Implementación del Motor Lógico Central.
+ * Guarda en memoria RAM privada ('private var') el estado mutable del juego y procesa la partida en un hilo de fondo.
+ * Reacciona al when de tipos (is), calcula consecuencias con corrutinas y emite copias (.copy) inmutables por el canal seguro.
+ */
+
 package com.imperio.core
 
 import com.imperio.core.comunicacion.AccionJugador
@@ -8,9 +14,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 
-/**
- * La implementación real del cerebro del juego.
- */
+
+
 class Motor : ServiciosMotor {
 
     // El "ámbito" o motor de hilos que nos permite lanzar tareas en segundo plano de forma segura

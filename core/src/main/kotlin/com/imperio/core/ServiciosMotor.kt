@@ -1,13 +1,17 @@
+/**
+ * ARQUITECTURA IMPERIO: Interfaz de Frontera entre Módulos.
+ * Define el mostrador de servicios aislado que la UI (:ui) consume del cerebro (:core).
+ * Entrada asíncrona mediante 'enviarAccion' y salida secuencial (FIFO) a través del Pipe 'flujoAccionesCore' (Flow).
+ */
+
 package com.imperio.core
 
 import com.imperio.core.comunicacion.AccionJugador
 import com.imperio.core.comunicacion.AccionCore
 import kotlinx.coroutines.flow.Flow
 
-/**
- * El contrato de servicios principal del cerebro del juego.
- * Define la entrada (UDP-like) y la salida (Río de datos) del Core.
- */
+
+
 interface ServiciosMotor {
 
     /**

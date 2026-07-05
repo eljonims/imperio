@@ -1,9 +1,13 @@
+/**
+ * ARQUITECTURA IMPERIO: Contrato de Datos Centralizado.
+ * Representa la fotografía fija, inmutable y de solo lectura de la partida en un instante.
+ * Se transfiere a la UI mediante referencias eficientes de la JVM (punteros ocultos) para evitar duplicación en RAM.
+ */
+
 package com.imperio.core.comunicacion
 
-/**
- * LA FOTO DEL JUEGO: Estructura fija y real que representa el estado de la partida
- * en un instante concreto. La UI leerá esto para dibujarlo todo.
- */
+
+
 data class EstadoJuego(
     val turnoActual: Int = 1,
     val mensajePantalla: String? = null,

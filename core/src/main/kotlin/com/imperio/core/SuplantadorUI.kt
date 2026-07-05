@@ -1,3 +1,9 @@
+/**
+ * ARQUITECTURA IMPERIO: Arnés de Pruebas (Stub de Consola).
+ * Suplanta temporalmente a la interfaz gráfica de LibGDX para exprimir y testear el Motor de forma asíncrona.
+ * Abre un coproceso lector que se autocierra limpiamente mediante Context[Job]?.cancel() evitando hilos zombi (Exit 0).
+ */
+
 package com.imperio.core
 
 import com.imperio.core.comunicacion.AccionCore
@@ -6,10 +12,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-/**
- * Función principal ejecutable. Suplanta a la UI.
- * Diseñada de forma autónoma: el lector se autocierra al recibir la orden del Core.
- */
+
+
+
 fun main() = runBlocking {
     val motorJuego: ServiciosMotor = Motor()
 
