@@ -8,17 +8,15 @@ package com.imperio.core
 import com.imperio.core.comunicacion.AccionJugador
 import com.imperio.core.comunicacion.AccionCore
 import com.imperio.core.comunicacion.EstadoJuego
+import com.imperio.core.comunicacion.Rendimiento
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.cancel // <--- EL IMPORT QUE FALTABA: Activa la extensión .cancel() del Scope
+import kotlinx.coroutines.cancel
 import kotlinx.serialization.json.Json
 
-/**
- * La implementación real y definitiva del cerebro del juego.
- */
 class Motor : ServiciosMotor {
 
     private val alcanceMotor = CoroutineScope(Dispatchers.Default)
@@ -27,6 +25,31 @@ class Motor : ServiciosMotor {
 
     private var estadoActual = EstadoJuego()
     private var mapaCasillas: Map<Pair<Int, Int>, Casilla> = emptyMap()
+
+    // LA BIBLIA DEL BALANCEO: Guarda las estadísticas cargadas desde reglas_terreno.json
+    private var reglasMundo: ReglasTerreno? = null
+
+    private val rulesetActivo = "rulesets/civ5_base"
+
+    /**
+     * Carga las estadísticas de rendimiento, altura y movilidad de la naturaleza desde el JSON.
+     */
+    fun cargarReglasDesdeArchivo() {
+        try {
+            val rutaCompleta = "$rulesetActivo/reglas_terreno.json"
+            val stream = this::class.java.classLoader.getResourceAsStream(rutaCompleta)
+                ?: throw IllegalArgumentException("No se encontró el archivo '$rutaCompleta'")
+
+            val textoJson = stream.bufferedReader().use { it.readText() }
+
+            // Absorber el JSON usando el molde inmutable de PlantillaTerreno.kt
+            reglasMundo = Json.decodeFromString<ReglasTerreno>(textoJson)
+
+            println("[CORE] Reglas de la naturaleza cargadas con éxito desde '$rulesetActivo'.")
+        } catch (e: Exception) {
+            println("[CORE] ERROR CRÍTICO al cargar las reglas del terreno: ${e.message}")
+        }
+    }
 
     fun inicializarMapaDesdeJson(jsonTexto: String) {
         try {
@@ -37,32 +60,65 @@ class Motor : ServiciosMotor {
             println("[CORE] ERROR CRÍTICO al deserializar el mapa JSON: ${e.message}")
         }
     }
-    /**
-     * Abre el disco duro, lee el archivo JSON de la carpeta assets y activa el cargador.
-     * Usa el ClassLoader de la JVM para que funcione en cualquier sistema operativo.
-     */
+
     fun cargarMapaDesdeArchivo(nombreArchivo: String) {
         try {
-            // Buscamos el archivo en la raíz del empaquetado de recursos de Gradle
-            val stream = this::class.java.classLoader.getResourceAsStream(nombreArchivo)
-                ?: throw IllegalArgumentException("No se encontró el archivo '$nombreArchivo' en los recursos del sistema.")
+            val rutaCompleta = "$rulesetActivo/$nombreArchivo"
+            val stream = this::class.java.classLoader.getResourceAsStream(rutaCompleta)
+                ?: throw IllegalArgumentException("No se encontró el archivo '$rutaCompleta'")
 
             val textoJson = stream.bufferedReader().use { it.readText() }
-
-            println("[CORE] Archivo '$nombreArchivo' leído con éxito del disco duro.")
+            println("[CORE] Archivo '$nombreArchivo' leído con éxito desde el ruleset '$rulesetActivo'.")
             inicializarMapaDesdeJson(textoJson)
         } catch (e: Exception) {
             println("[CORE] ERROR CRÍTICO al leer el archivo físico del mapa: ${e.message}")
         }
     }
 
+    /**
+     * MATEMÁTICAS DATA-DRIVEN: Calcula el rendimiento real de una casilla en la RAM.
+     * Suma de forma atómica las 7 estadísticas universales cruzando el Suelo y el Accidente.
+     */
+    fun calcularRendimientoCasilla(casilla: Casilla): Rendimiento {
+        val reglas = reglasMundo ?: return Rendimiento()
+
+        val statsSuelo = reglas.suelos[casilla.suelo.name.lowercase()]
+        val statsAccidente = reglas.accidentes[casilla.accidente.name.lowercase()]
+
+        var comidaFinal = statsSuelo?.comida ?: 0
+        var produccionFinal = statsSuelo?.produccion ?: 0
+        var oroFinal = statsSuelo?.oro ?: 0
+        var cienciaFinal = statsSuelo?.ciencia ?: 0
+        var culturaFinal = statsSuelo?.cultura ?: 0
+        var feFinal = statsSuelo?.fe ?: 0
+        var felicidadFinal = statsSuelo?.felicidad ?: 0
+
+        if (statsAccidente != null) {
+            comidaFinal += statsAccidente.comida
+            produccionFinal += statsAccidente.produccion
+            oroFinal += statsAccidente.oro
+            cienciaFinal += statsAccidente.ciencia
+            culturaFinal += statsAccidente.cultura
+            feFinal += statsAccidente.fe
+            felicidadFinal += statsAccidente.felicidad
+        }
+
+        return Rendimiento(
+            comida = comidaFinal,
+            produccion = produccionFinal,
+            oro = oroFinal,
+            ciencia = cienciaFinal,
+            cultura = culturaFinal,
+            fe = feFinal,
+            felicidad = felicidadFinal
+        )
+    }
+
+    fun obtenerCasillasEnRAM(): Map<Pair<Int, Int>, Casilla> = mapaCasillas
 
     override fun apagarMotor() {
         println("[CORE] Solicitando cierre. Despachando mensaje final...")
-        // 1. Emitimos el mensaje de despedida de forma instantánea y segura
         _canalSalida.tryEmit(AccionCore.MostrarMensaje("Partida finalizada. Cerrando conexiones."))
-
-        // 2. Ejecutamos el tiro de gracia: matamos el Scope y liberamos los hilos nativos de la CPU
         println("[CORE] Cancelando alcanceMotor y liberando hilos de la CPU...")
         alcanceMotor.cancel()
     }
@@ -91,12 +147,8 @@ class Motor : ServiciosMotor {
                     _canalSalida.emit(AccionCore.NuevoEstado(estadoActual))
                 }
             }
-            is AccionJugador.MoverA -> {
-                // Se completará cuando definamos las unidades en el mapa
-            }
-            is AccionJugador.SalirAlMenuPrincipal -> {
-                // El caso se queda vacío porque la UI llamará directamente a apagarMotor()
-            }
+            is AccionJugador.MoverA -> {}
+            is AccionJugador.SalirAlMenuPrincipal -> {}
         }
     }
 }

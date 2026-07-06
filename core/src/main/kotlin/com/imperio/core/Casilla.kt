@@ -15,26 +15,51 @@ import kotlinx.serialization.Serializable
  */
 interface Terreno {
 
-    // Capa 1: El suelo base fundamental de la celda (Nunca cambia)
+    // Capa 1: El suelo base fundamental de la celda (Catálogo real de Unciv)
     @Serializable
     enum class Suelo {
         @SerialName("pradera") PRADERA,
         @SerialName("desierto") DESIERTO,
+        @SerialName("sabana") SABANA,
         @SerialName("tundra") TUNDRA,
         @SerialName("nieve") NIEVE,
+        @SerialName("montana") MONTANA,
         @SerialName("costa") COSTA,
-        @SerialName("oceano") OCEANO
+        @SerialName("oceano") OCEANO,
+        @SerialName("lago") LAGO
     }
 
-    // Capa 2: El accidente o característica geográfica natural superpuesta al suelo
+    // Capa 2: Accidentes geográficos, aspectos y Maravillas Naturales exclusivas
     @Serializable
     enum class Accidente {
         @SerialName("ninguno") NINGUNO,
+
+        // Aspectos y Accidentes Estándar
         @SerialName("colina") COLINA,
-        @SerialName("montana") MONTANA,
         @SerialName("bosque") BOSQUE,
         @SerialName("selva") SELVA,
-        @SerialName("pantano") PANTANO
+        @SerialName("pantano") PANTANO,
+        @SerialName("cienaga") CIENAGA,
+        @SerialName("atolon") ATOLON,
+        @SerialName("hielo") HIELO,
+        @SerialName("oasis") OASIS,
+        @SerialName("rio") RIO,
+        @SerialName("terreno_radioactivo") TERRENO_RADIOACTIVO,
+
+        // Maravillas Naturales (Comparten la misma capa excluyente)
+        @SerialName("maravilla_potosi") MARAVILLA_POTOSI,
+        @SerialName("maravilla_barringer") MARAVILLA_BARRINGER,
+        @SerialName("maravilla_dorado") MARAVILLA_DORADO,
+        @SerialName("maravilla_juventud") MARAVILLA_JUVENTUD,
+        @SerialName("maravilla_coral") MARAVILLA_CORAL,
+        @SerialName("maravilla_meseta") MARAVILLA_MESETA,
+        @SerialName("maravilla_krakatoa") MARAVILLA_KRAKATOA,
+        @SerialName("maravilla_fuji") MARAVILLA_FUJI,
+        @SerialName("maravilla_kailash") MARAVILLA_KAILASH,
+        @SerialName("maravilla_sinai") MARAVILLA_SINAI,
+        @SerialName("maravilla_gibraltar") MARAVILLA_GIBRALTAR,
+        @SerialName("maravilla_adan") MARAVILLA_ADAN
+
     }
 
     // Capa 3: La infraestructura artificial construida por los trabajadores del jugador
@@ -60,7 +85,6 @@ interface Terreno {
 
 /**
  * LA CELDA PURA: Estructura inmutable que representa el sándwich de 4 capas y la red de transporte del mapa.
- * Las coordenadas son fijas, las capas usan 'Terreno' y las rutas de transporte se manejan mediante booleanos eficientes.
  */
 @Serializable
 data class Casilla(
@@ -71,7 +95,7 @@ data class Casilla(
     val mejora: Terreno.Mejora = Terreno.Mejora.NINGUNA,
     val estadoRuina: Terreno.Ruina = Terreno.Ruina.NINGUNA,
 
-    // Red de transporte independiente (Convive con las mejoras)
+    // Red de transporte independiente booleanas
     val tieneCarretera: Boolean = false,
     val tieneViaTren: Boolean = false
 )
